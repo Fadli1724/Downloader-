@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Downloader By Fadli</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⬇️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#0f1b2d;--mute:#5b6b80;--line:#d5dde7;--blue:#2d5bff;--yellow:#ffc93c;--err:#c62b3a;--ok:#12805c}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#131d30;--ink:#eaf0f8;--mute:#93a3b8;--line:#25324a;--blue:#6f8dff;--yellow:#ffc93c;--err:#ff7b88;--ok:#4cd6a0}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "DM Sans",system-ui,sans-serif;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.wrap{max-width:720px;margin:0 auto;padding:32px 18px 56px}
+h1{font:800 clamp(2.2rem,8vw,3.6rem)/1 "Bricolage Grotesque",system-ui,sans-serif;margin:0 0 10px;letter-spacing:-.02em}
+h1 span{background:var(--yellow);color:#0f1b2d;padding:0 .18em;border-radius:6px}
+.sub{color:var(--mute);margin:0 0 28px;max-width:46ch}
+.tabs{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);padding:5px;border-radius:12px;margin-bottom:16px}
+.tabs button{flex:1;border:0;background:none;color:var(--mute);font:600 15px "DM Sans",sans-serif;padding:11px;border-radius:8px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.panel[hidden]{display:none}
+label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+input,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px}
+input:focus,select:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.row>div{flex:1 1 140px}
+.go{width:100%;margin-top:16px;border:0;background:var(--yellow);color:#0f1b2d;font:800 17px "Bricolage Grotesque",sans-serif;padding:14px;border-radius:10px;cursor:pointer}
+.go:disabled{opacity:.6;cursor:wait}
+.msg{margin:14px 0 0;font-size:14.5px}
+.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+.results{display:grid;gap:8px;margin-top:14px}
+.results a{display:flex;justify-content:space-between;gap:10px;align-items:center;text-decoration:none;color:var(--ink);border:1.5px solid var(--blue);border-radius:10px;padding:12px 14px;font-weight:600;word-break:break-word}
+.results a b{color:var(--blue);white-space:nowrap}
+.video{position:relative;aspect-ratio:16/9;margin-top:16px;background:#000;border-radius:12px;overflow:hidden}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.note{font-size:13px;color:var(--mute);margin:14px 0 0}
+details{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+summary{cursor:pointer;font-weight:600}
+footer{margin-top:28px;font-size:13px;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Downloader <span>By Fadli</span></h1>
+  <p class="sub">Tempel link video untuk diunduh, atau tonton video YouTube tanpa iklan. Riwayat tidak disimpan.</p>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="t-dl" aria-selected="true" aria-controls="p-dl">Unduh video</button>
+    <button role="tab" id="t-yt" aria-selected="false" aria-controls="p-yt">Tonton YouTube</button>
+  </div>
+
+  <section class="panel" id="p-dl" role="tabpanel" aria-labelledby="t-dl">
+    <label for="url">Link video</label>
+    <input id="url" type="url" inputmode="url" placeholder="https://..." autocomplete="off">
+    <div class="row">
+      <div><label for="mode">Hasil unduhan</label>
+        <select id="mode"><option value="auto">Video + suara</option><option value="audio">Audio saja</option><option value="mute">Video tanpa suara</option></select></div>
+      <div><label for="q">Kualitas</label>
+        <select id="q"><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option><option value="360">360p</option><option value="max">Tertinggi</option></select></div>
+    </div>
+    <button class="go" id="dl">Cari file</button>
+    <p class="msg" id="dl-msg" role="status" aria-live="polite"></p>
+    <div class="results" id="dl-res"></div>
+
+    <details id="setting">
+      <summary>Pengaturan server unduhan</summary>
+      <p class="note">GitHub Pages hanya menyajikan file statis, jadi pengambilan video dilakukan oleh server API yang kompatibel dengan Cobalt. Isi alamat servernya di sini.</p>
+      <label for="api" style="margin-top:12px">Alamat server API</label>
+      <input id="api" type="url" placeholder="https://api.domainmu.com/">
+      <label for="key" style="margin-top:12px">API key (jika server meminta)</label>
+      <input id="key" type="password" autocomplete="off" placeholder="Kosongkan jika tidak ada">
+    </details>
+  </section>
+
+  <section class="panel" id="p-yt" role="tabpanel" aria-labelledby="t-yt" hidden>
+    <label for="yt">Link YouTube</label>
+    <input id="yt" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+    <div class="row">
+      <div><label for="src">Pemutar</label>
+        <select id="src">
+          <option value="inv">Invidious (tanpa iklan)</option>
+          <option value="nc">YouTube privasi (nocookie)</option>
+        </select></div>
+      <div><label for="inv">Server Invidious</label>
+        <input id="inv" value="https://yewtu.be" aria-label="Alamat server Invidious"></div>
+    </div>
+    <button class="go" id="play">Putar</button>
+    <p class="msg" id="yt-msg" role="status" aria-live="polite"></p>
+    <div class="video" id="vid" hidden></div>
+    <p class="note">Pemutar Invidious tidak memuat iklan YouTube. Jika video tidak muncul, server Invidious sedang penuh atau mati: ganti alamatnya dengan server lain. Pemutar nocookie tetap bisa menampilkan iklan.</p>
+  </section>
+
+  <footer>Gunakan hanya untuk konten milikmu atau yang boleh diunduh. Patuhi aturan situs sumber dan hak cipta.</footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+/* Tab */
+function tab(which){
+  const dl = which === 'dl';
+  $('t-dl').setAttribute('aria-selected', dl);
+  $('t-yt').setAttribute('aria-selected', !dl);
+  $('p-dl').hidden = !dl;
+  $('p-yt').hidden = dl;
+}
+$('t-dl').onclick = () => tab('dl');
+$('t-yt').onclick = () => tab('yt');
+
+/* Simpan hanya alamat server (bukan riwayat) */
+try{ $('api').value = localStorage.getItem('fadli_api') || ''; }catch(e){}
+$('api').addEventListener('change', () => { try{ localStorage.setItem('fadli_api', $('api').value.trim()); }catch(e){} });
+
+function say(id, text, kind){ const el = $(id); el.textContent = text; el.className = 'msg ' + (kind || ''); }
+
+const ERR = {
+  'error.api.unreachable':'Server tidak bisa dihubungi.',
+  'error.api.link.invalid':'Link tidak valid.',
+  'error.api.link.unsupported':'Situs ini belum didukung server.',
+  'error.api.content.video.unavailable':'Video tidak tersedia atau bersifat privat.',
+  'error.api.auth.key.missing':'Server meminta API key. Isi di Pengaturan.',
+  'error.api.auth.key.invalid':'API key salah.',
+  'error.api.fetch.fail':'Server gagal mengambil video dari situs sumber.'
+};
+
+/* Unduh */
+$('dl').onclick = async () => {
+  const url = $('url').value.trim();
+  const out = $('dl-res'); out.innerHTML = '';
+  if(!/^https?:\/\//i.test(url)){ say('dl-msg','Tempel link yang diawali http:// atau https://.','err'); return; }
+  const api = $('api').value.trim();
+  if(!api){ $('setting').open = true; say('dl-msg','Isi alamat server API dulu di Pengaturan server unduhan.','err'); $('api').focus(); return; }
+  const btn = $('dl'); btn.disabled = true; say('dl-msg','Mencari file…');
+  try{
+    const headers = {'Accept':'application/json','Content-Type':'application/json'};
+    const key = $('key').value.trim();
+    if(key) headers.Authorization = 'Api-Key ' + key;
+    const r = await fetch(api, {method:'POST', headers, body: JSON.stringify({url, videoQuality: $('q').value, downloadMode: $('mode').value, filenameStyle:'pretty'})});
+    const d = await r.json();
+    if(d.status === 'error'){ const c = d.error && d.error.code; say('dl-msg', ERR[c] || ('Gagal: ' + (c || 'kesalahan tidak dikenal')), 'err'); return; }
+    const items = [];
+    if(d.status === 'tunnel' || d.status === 'redirect') items.push({url:d.url, name:d.filename || 'Unduh file'});
+    else if(d.status === 'picker'){
+      (d.picker || []).forEach((p,i) => items.push({url:p.url, name:(p.type === 'photo' ? 'Foto ' : 'Video ') + (i+1)}));
+      if(d.audio) items.push({url:d.audio, name:'Audio'});
+    }
+    if(!items.length){ say('dl-msg','Server tidak mengembalikan file.','err'); return; }
+    items.forEach(it => {
+      const a = document.createElement('a');
+      a.href = it.url; a.target = '_blank'; a.rel = 'noopener'; a.download = it.name;
+      const s = document.createElement('span'); s.textContent = it.name;
+      const b = document.createElement('b'); b.textContent = 'Unduh';
+      a.append(s, b); out.append(a);
+    });
+    say('dl-msg','File siap diunduh.','ok');
+  }catch(e){
+    say('dl-msg','Tidak bisa terhubung ke server. Periksa alamatnya, dan pastikan server mengizinkan akses dari situs ini (CORS).','err');
+  }finally{ btn.disabled = false; }
+};
+
+/* YouTube */
+function ytId(u){
+  try{
+    const x = new URL(u), h = x.hostname.replace(/^www\.|^m\./,'');
+    if(h === 'youtu.be') return x.pathname.slice(1).split('/')[0];
+    if(h.endsWith('youtube.com') || h.endsWith('youtube-nocookie.com')){
+      if(x.searchParams.get('v')) return x.searchParams.get('v');
+      const m = x.pathname.match(/^\/(shorts|embed|live|v)\/([\w-]{11})/);
+      if(m) return m[2];
+    }
+  }catch(e){}
+  return /^[\w-]{11}$/.test(u) ? u : null;
+}
+$('play').onclick = () => {
+  const id = ytId($('yt').value.trim());
+  const box = $('vid');
+  if(!id){ box.hidden = true; box.innerHTML = ''; say('yt-msg','Link YouTube tidak dikenali.','err'); return; }
+  let src;
+  if($('src').value === 'inv'){
+    const base = $('inv').value.trim().replace(/\/$/,'');
+    if(!/^https:\/\//i.test(base)){ say('yt-msg','Alamat server Invidious harus diawali https://','err'); return; }
+    src = base + '/embed/' + id + '?autoplay=1';
+  }else{
+    src = 'https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1';
+  }
+  box.innerHTML = '';
+  const f = document.createElement('iframe');
+  f.src = src; f.title = 'Pemutar video'; f.allowFullscreen = true;
+  f.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+  f.referrerPolicy = 'no-referrer';
+  box.append(f); box.hidden = false; say('yt-msg','');
+};
+</script>
+</body>
+</html>
